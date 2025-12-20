@@ -4,12 +4,17 @@
  * Creates an AI agent specialized for UI/UX design tasks.
  * Uses the AI SDK Experimental Agent class with tool calling.
  * 
+ * Supports multiple providers via AI_PROVIDER env variable:
+ * - "azure" (default): Azure OpenAI
+ * - "openrouter": OpenRouter (access to 100+ models)
+ * 
  * @see https://ai-sdk.dev/docs/agents/building-agents
  */
 
 import { createAzure } from '@ai-sdk/azure'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { Experimental_Agent as Agent, stepCountIs } from 'ai'
-import type { ToolSet } from 'ai'
+import type { ToolSet, LanguageModelV2 } from 'ai'
 
 /**
  * System prompt that defines the agent's behavior and capabilities.
@@ -32,16 +37,33 @@ The branding of the tool itself is Neobrutalism (Black #0F1113, Lime #D1FE17), b
 Always try to be helpful and creative.`
 
 /**
- * Azure OpenAI configuration.
- * Uses environment variables for API key.
+ * Get the configured AI model based on environment variables.
+ * 
+ * Environment variables:
+ * - AI_PROVIDER: "azure" | "openrouter" (default: "azure")
+ * - AI_MODEL: Model name (default depends on provider)
+ * - AZURE_API_KEY: Required for Azure provider
+ * - OPENROUTER_API_KEY: Required for OpenRouter provider
  */
-const azure = createAzure({
-  baseURL: 'https://munon-m6zg3vf1-eastus2.cognitiveservices.azure.com/openai/',
-  apiKey: process.env.AZURE_API_KEY,
-})
-
-/** Default model for the design agent */
-export const DESIGN_AGENT_MODEL = azure('gpt-5.1')
+function getModel(): LanguageModelV2 {
+  const provider = process.env.AI_PROVIDER || 'azure'
+  
+  if (provider === 'openrouter') {
+    const openrouter = createOpenRouter({
+      apiKey: process.env.OPENROUTER_API_KEY,
+    })
+    const model = process.env.AI_MODEL || 'anthropic/claude-sonnet-4'
+    return openrouter.chat(model)
+  }
+  
+  // Default: Azure
+  const azure = createAzure({
+    baseURL: 'https://munon-m6zg3vf1-eastus2.cognitiveservices.azure.com/openai/',
+    apiKey: process.env.AZURE_API_KEY,
+  })
+  const model = process.env.AI_MODEL || 'gpt-5.1'
+  return azure(model)
+}
 
 /** Maximum number of tool-calling steps before stopping */
 export const DESIGN_AGENT_MAX_STEPS = 10
@@ -61,7 +83,7 @@ export const DESIGN_AGENT_MAX_STEPS = 10
  */
 export function createDesignAgent(tools: ToolSet) {
   return new Agent({
-    model: DESIGN_AGENT_MODEL,
+    model: getModel(),
     system: DESIGN_AGENT_SYSTEM_PROMPT,
     tools,
     stopWhen: stepCountIs(DESIGN_AGENT_MAX_STEPS),

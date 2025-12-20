@@ -87,7 +87,19 @@ const buildSrcdoc = (rawHtml: string, css: string): string => {
   return `<!doctype html>\n${doc.documentElement.outerHTML}`
 }
 
-const srcdoc = computed(() => buildSrcdoc(props.screen.html, props.screen.css))
+const srcdoc = computed(() => {
+  const result = buildSrcdoc(props.screen.html, props.screen.css)
+  debug.render('srcdoc for', props.screen.id, {
+    htmlLength: props.screen.html?.length || 0,
+    cssLength: props.screen.css?.length || 0,
+    srcdocLength: result.length,
+    srcdocPreview: result.slice(0, 500),
+  })
+  return result
+})
+
+// Force iframe re-render when content changes (some browsers don't update srcdoc reactively)
+const iframeKey = computed(() => `${props.screen.id}-${props.screen.html?.length || 0}-${props.screen.css?.length || 0}`)
 </script>
 
 <template>
@@ -106,6 +118,7 @@ const srcdoc = computed(() => buildSrcdoc(props.screen.html, props.screen.css))
       :class="isEditing ? 'border-brand-lime shadow-brutal-lime' : 'border-brand-black'"
     >
       <iframe
+        :key="iframeKey"
         class="block w-full h-full bg-transparent"
         style="border: 0"
         :srcdoc="srcdoc"

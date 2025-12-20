@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { Send, Loader2 } from 'lucide-vue-next'
+import { Send, Loader2, Download } from 'lucide-vue-next'
 import { useChatAgent } from '~/composables/useChatAgent'
 
 const { messages, input, handleSubmit, isLoading } = useChatAgent()
+
+const showExportModal = ref(false)
 
 const scrollRef = ref<HTMLElement | null>(null)
 
@@ -43,9 +45,18 @@ watch(messages, () => {
 
 <template>
   <div class="flex flex-col h-full bg-brand-black border-r-3 border-brand-lime w-[350px]">
-    <div class="p-4 border-b-3 border-brand-lime">
+    <div class="p-4 border-b-3 border-brand-lime flex items-center justify-between">
       <h1 class="text-brand-lime font-black text-xl tracking-tighter uppercase">App Club Design</h1>
+      <button 
+        @click="showExportModal = true"
+        class="text-brand-lime hover:opacity-70 transition-opacity"
+        title="Export screens"
+      >
+        <Download class="w-5 h-5" />
+      </button>
     </div>
+    
+    <ExportModal :open="showExportModal" @close="showExportModal = false" />
 
     <div ref="scrollRef" class="flex-1 overflow-y-auto p-4 space-y-4">
       <div v-if="messages.length === 0" class="text-brand-lime/50 text-sm font-medium italic">
