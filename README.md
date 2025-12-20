@@ -1,132 +1,202 @@
-This document serves as the comprehensive blueprint for building **App Club Design**—a Figma-like web application where an AI agent designs mobile and desktop screens on an infinite canvas.
+# App Club Design
+
+**AI-powered design canvas for creating mobile and desktop UI screens**
+
+A Figma-like web application where an AI agent designs screens on an infinite canvas. Built with Nuxt 3, Vercel AI SDK v5, and Azure OpenAI.
+
+🔗 **Repository:** https://github.com/munonzito/design.appclub.dev
 
 ---
 
-## 1. Project Overview
+## Features
 
-The application provides an AI-powered design environment. Users interact with a "Design Agent" via chat. The agent can create screens, modify their vanilla HTML/CSS, generate AI images for UI assets, and manage a version history for every screen.
-
-### Core Features
-
-* **Infinite Canvas:** A pan-and-zoom interface for a bird's-eye view of the entire project.
-* **Shadow DOM Isolation:** Each screen is rendered in a Shadow Root to ensure CSS styles never leak or conflict.
-* **Autonomous Agent Loop:** Powered by Vercel AI SDK, allowing the agent to chain multiple tool calls (e.g., "Generate image" \rightarrow "Update HTML").
-* **Stateless Persistence:** In-memory versioning that saves "snapshots" of code for instant undos.
-
----
-
-## 2. System Architecture
-
-### Backend (Nitro / Vercel AI SDK)
-
-The backend is a single Nitro API route (`/api/chat`) that acts as the agent's brain.
-
-* **Model:** `gpt-4o` or similar.
-* **Tooling:** A set of Zod-validated tools for `upsertScreen`, `restoreVersion`, and `generateImage`.
-* **Max Steps:** Set to `5-10` to allow the agent to iterate on a design before showing the final result.
-
-### Frontend (Nuxt 3)
-
-* **State:** A global `useProjectState` composable.
-* **UI:** A split view with a Chat Sidebar (Left) and the Infinite Canvas (Center/Right).
+- ✨ **AI Design Agent** - Chat with an AI that creates and edits UI screens in real-time
+- 🎨 **Infinite Canvas** - Pan and zoom with smooth transformations (Ctrl/Cmd + wheel to zoom, Shift + wheel to pan)
+- 📱 **Screen Rendering** - Sandboxed iframe rendering for complete HTML/CSS isolation
+- 🔄 **Streaming Tool Calls** - Real-time feedback as the agent designs (editing overlays, progress indicators)
+- 📊 **Version History** - Track changes and restore previous versions of screens
+- 🎯 **Keyboard Shortcuts** - Zoom in/out with `Cmd/Ctrl +` and `Cmd/Ctrl -`
+- 🐛 **Debug Utility** - Controllable namespace-based logging for development
 
 ---
 
-## 3. Technical Implementation Guides
+## Getting Started
 
-### A. The Infinite Canvas (Zoom & Pan)
+### Prerequisites
 
-To create the Figma feel, we apply a global transform to a "Mover" container.
+- [Bun](https://bun.sh/) v1.0+
+- Azure OpenAI API access
 
-```vue
-<script setup>
-const transform = ref({ x: 0, y: 0, scale: 1 });
+### Installation
 
-const handleWheel = (e) => {
-  if (e.ctrlKey) { // Zoom
-    const zoomSpeed = 0.001;
-    transform.value.scale -= e.deltaY * zoomSpeed;
-  } else { // Pan
-    transform.value.x -= e.deltaX;
-    transform.value.y -= e.deltaY;
-  }
-};
-</script>
-
-<template>
-  <div class="canvas-viewport" @wheel.prevent="handleWheel">
-    <div :style="{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }">
-      <CanvasScreenNode v-for="s in screens" :screen="s" />
-    </div>
-  </div>
-</template>
-
+1. Clone the repository:
+```bash
+git clone https://github.com/munonzito/design.appclub.dev.git
+cd design.appclub.dev
 ```
 
-### B. Isolated Screen Rendering (Shadow DOM)
+2. Install dependencies:
+```bash
+bun install
+```
 
-Standard `scoped` CSS isn't enough when an AI is writing raw CSS strings. We use the Shadow DOM to create a hard boundary.
+3. Create `.env` file from template:
+```bash
+cp .env.example .env
+```
 
-```javascript
-// Inside CanvasScreenNode.vue
-const updateShadow = () => {
-  const root = host.value.shadowRoot || host.value.attachShadow({ mode: 'open' });
-  root.innerHTML = `
-    <style>${props.screen.css}</style>
-    <div class="wrapper">${props.screen.html}</div>
-  `;
-};
+4. Add your API keys to `.env`:
+```bash
+AZURE_API_KEY=your_azure_api_key_here
+# Optional: GOOGLE_GENERATIVE_AI_API_KEY=your_google_key_here
+```
 
+5. Start the development server:
+```bash
+bun run dev
+```
+
+6. Open http://localhost:3000 and start designing!
+
+### Build for Production
+
+```bash
+bun run build
+bun run preview
 ```
 
 ---
 
-## 4. The Agent's Toolset (Low-Level)
+## Architecture
 
-| Tool | Action | Logic |
-| --- | --- | --- |
-| `upsertScreen` | Create/Edit | Pushes current `html/css` to `history[]` before updating current state. |
-| `generateImage` | Asset Gen | Calls `experimental_generateImage` (DALL-E 3) and returns a URL. |
-| `restoreVersion` | Undo | Replaces `html/css` with `history[index]`. |
+### Tech Stack
 
-### Image Generation Integration
+- **Framework:** [Nuxt 3](https://nuxt.com/) with TypeScript
+- **AI SDK:** [Vercel AI SDK v5](https://sdk.vercel.ai/) with Agent class
+- **Model:** Azure OpenAI (gpt-4o)
+- **Styling:** Tailwind CSS with custom brutalist design system
+- **Rendering:** Sandboxed iframe with HTML sanitization
 
-The agent shouldn't just send an image; it should *place* it.
+### Project Structure
 
-1. The agent calls `generateImage`.
-2. The agent receives the URL.
-3. The agent calls `upsertScreen` with `<img src="...">` included in the HTML.
-
----
-
-## 5. File Structure
-
-```text
+```
 /
 ├── components/
 │   ├── Canvas/
-│   │   ├── InfiniteStage.vue
-│   │   └── ScreenNode.vue
+│   │   ├── InfiniteStage.vue      # Pan/zoom canvas with keyboard shortcuts
+│   │   └── ScreenNode.vue         # Iframe renderer with editing overlay
 │   └── Chat/
-│       └── Sidebar.vue
+│       └── Sidebar.vue            # Chat UI with tool status indicators
+├── composables/
+│   ├── useChatAgent.ts            # Chat orchestration (~100 lines)
+│   ├── useProjectState.ts         # Global state (screens, history, editing)
+│   └── chat/
+│       ├── types.ts               # Message and ToolInvocation types
+│       ├── parseSSEStream.ts      # SSE parser for AI SDK streams
+│       └── handleToolEvents.ts    # Tool event routing and side effects
 ├── server/
 │   ├── api/
-│   │   └── chat.post.ts      # The AI Agent Route
+│   │   └── chat.post.ts           # Agent streaming endpoint
 │   └── utils/
-│       └── ai-tools.ts       # Tool definitions (Zod)
-├── composables/
-│   └── useProjectState.ts    # Global Screen & History state
-└── lib/
-    └── schemas.ts            # Shared types
+│       ├── designAgent.ts         # Agent factory + system prompt
+│       └── ai-tools.ts            # Tool definitions (upsertScreen, listScreens, etc.)
+├── lib/
+│   ├── debug.ts                   # Controllable debug utility
+│   └── schemas.ts                 # Zod schemas for screens
+└── docs/
+    └── AI_SDK_INTEGRATION.md      # Comprehensive AI SDK integration guide
+```
 
+### Key Design Decisions
+
+**1. Iframe Rendering (Not Shadow DOM)**
+- Agent generates full HTML documents with `<html>`, `<body>`, global CSS
+- Sandboxed iframe provides complete isolation
+- HTML sanitization removes `<script>` and `<link>` tags for security
+
+**2. Modular Composables**
+- `useChatAgent.ts` orchestrates chat but delegates to focused modules:
+  - `parseSSEStream.ts` - Reusable SSE parser
+  - `handleToolEvents.ts` - Tool event routing
+  - `types.ts` - Shared message types
+- Easier to test, maintain, and extend
+
+**3. Custom Streaming for Early Feedback**
+- Uses `createUIMessageStream` wrapper to send custom events
+- `onInputDelta` hook parses screen ID from partial JSON as it streams
+- Sends `data-editing-start` event before tool execution completes
+- Result: Editing overlay appears immediately when agent starts designing
+
+**4. Controllable Debug Logging**
+- Production: Silent by default
+- Development: Enable via browser console: `enableDebug('tools', 'state', 'render')`
+- Color-coded output for easy filtering
+
+---
+
+## AI SDK Integration
+
+This project uses advanced AI SDK v5 patterns including:
+
+- **Agent Class** with multi-step reasoning
+- **UIMessage Streaming** with SSE protocol
+- **Custom Tool Lifecycle Hooks** (`onInputDelta`)
+- **Early Feedback Mechanism** for better UX
+
+For detailed technical documentation, see [docs/AI_SDK_INTEGRATION.md](./docs/AI_SDK_INTEGRATION.md)
+
+---
+
+## Development
+
+### Debug Logging
+
+Enable debug logs in the browser console:
+
+```javascript
+enableDebug('tools')    // Tool call lifecycle
+enableDebug('state')    // State changes (isDesigning, editingScreenId)
+enableDebug('render')   // Rendering events (overlay ON/OFF)
+enableDebug('stream')   // SSE stream parsing
+enableDebug('chat')     // Chat messages
+
+// Or enable multiple:
+enableDebug('tools', 'state', 'render')
+```
+
+### Environment Variables
+
+- `AZURE_API_KEY` - Azure OpenAI API key (required)
+- `GOOGLE_GENERATIVE_AI_API_KEY` - Google AI API key (optional, alternative provider)
+
+### Building
+
+```bash
+bun run build              # Build for production
+bun run preview            # Preview production build
+bun run generate           # Generate static site
 ```
 
 ---
 
-## 6. Development Priorities (Roadmap)
+## Deployment
 
-1. **Phase 1:** Setup Nuxt + Vercel AI SDK basic chat.
-2. **Phase 2:** Build the `InfiniteStage` and `ScreenNode` (Shadow DOM).
-3. **Phase 3:** Implement the `upsertScreen` tool with "Next-to-each-other" auto-positioning.
-4. **Phase 4:** Add the `history` array to the state and the `restoreVersion` tool.
-5. **Phase 5:** Integrate the Image Generation tool for UI assets.
+### Vercel (Recommended)
+
+1. Push to GitHub
+2. Import project in Vercel
+3. Add environment variables:
+   - `AZURE_API_KEY`
+4. Deploy
+
+### Netlify
+
+1. Build command: `bun run build`
+2. Publish directory: `.output/public`
+3. Add environment variables
+
+---
+
+## License
+
+MIT
