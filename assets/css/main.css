@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-brand-black text-white antialiased;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Custom Scrollbar for Neobrutalism */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-brand-black border-l-2 border-brand-lime;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-brand-lime border-2 border-brand-black;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-brand-lime/80;
+  }
+}
