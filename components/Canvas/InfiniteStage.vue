@@ -91,11 +91,14 @@ onUnmounted(() => {
         transformOrigin: '0 0'
       }"
     >
-      <CanvasScreenNode 
-        v-for="s in screens" 
-        :key="s.id" 
-        :screen="s" 
-      />
+      <!-- ClientOnly: ScreenNode uses DOMParser which is browser-only -->
+      <ClientOnly>
+        <CanvasScreenNode 
+          v-for="s in screens" 
+          :key="s.id" 
+          :screen="s" 
+        />
+      </ClientOnly>
     </div>
   </div>
 </template>

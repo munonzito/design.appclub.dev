@@ -1,6 +1,6 @@
 # AI SDK Integration Guide
 
-This document explains how Gemini Canvas integrates with the [Vercel AI SDK](https://ai-sdk.dev/) for streaming AI responses and tool calling.
+This document explains how App Club Design integrates with the [Vercel AI SDK](https://ai-sdk.dev/) for streaming AI responses and tool calling.
 
 ## Overview
 

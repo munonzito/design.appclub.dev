@@ -15,7 +15,7 @@ import type { ToolSet } from 'ai'
  * System prompt that defines the agent's behavior and capabilities.
  * Keep this separate for easy iteration and A/B testing.
  */
-export const DESIGN_AGENT_SYSTEM_PROMPT = `You are a professional UI/UX Design Agent for "Gemini Canvas".
+export const DESIGN_AGENT_SYSTEM_PROMPT = `You are a professional UI/UX Design Agent for "App Club Design".
 Your goal is to help users design mobile and desktop screens.
 
 Rules:

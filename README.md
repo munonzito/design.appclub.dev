@@ -1,4 +1,4 @@
-This document serves as the comprehensive blueprint for building **Gemini Design Canvas**—a Figma-like web application where an AI agent designs mobile and desktop screens on an infinite canvas.
+This document serves as the comprehensive blueprint for building **App Club Design**—a Figma-like web application where an AI agent designs mobile and desktop screens on an infinite canvas.
 
 ---
 

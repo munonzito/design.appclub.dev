@@ -26,7 +26,7 @@ export const useProjectState = () => {
       name: 'Welcome Screen',
       html: `
         <div style="padding: 20px; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: sans-serif;">
-          <h1 style="font-size: 24px; margin-bottom: 10px;">Welcome to Gemini Canvas</h1>
+          <h1 style="font-size: 24px; margin-bottom: 10px;">Welcome to App Club Design</h1>
           <p style="color: #666;">Ask the AI to design something for you!</p>
         </div>
       `,

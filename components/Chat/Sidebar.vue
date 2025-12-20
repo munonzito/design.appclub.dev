@@ -44,7 +44,7 @@ watch(messages, () => {
 <template>
   <div class="flex flex-col h-full bg-brand-black border-r-3 border-brand-lime w-[350px]">
     <div class="p-4 border-b-3 border-brand-lime">
-      <h1 class="text-brand-lime font-black text-xl tracking-tighter uppercase">Gemini Canvas</h1>
+      <h1 class="text-brand-lime font-black text-xl tracking-tighter uppercase">App Club Design</h1>
     </div>
 
     <div ref="scrollRef" class="flex-1 overflow-y-auto p-4 space-y-4">
