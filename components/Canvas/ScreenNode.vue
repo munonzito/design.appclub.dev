@@ -2,19 +2,14 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { Screen } from '~/lib/schemas'
 import { useProjectState } from '~/composables/useProjectState'
+import { debug } from '~/lib/debug'
 
 const props = defineProps<{
   screen: Screen
 }>()
 
 const { editingScreenId } = useProjectState()
-const isEditing = computed(() => {
-  const editing = editingScreenId.value === props.screen.id
-  if (import.meta.client) {
-    console.debug('[ScreenNode] editingScreenId:', editingScreenId.value, 'screen.id:', props.screen.id, 'isEditing:', editing)
-  }
-  return editing
-})
+const isEditing = computed(() => editingScreenId.value === props.screen.id)
 
 // Tool calls can complete very fast; keep the overlay visible briefly so it's noticeable.
 const showEditingOverlay = ref(false)
@@ -22,20 +17,20 @@ let hideTimer: ReturnType<typeof setTimeout> | null = null
 
 watch(
   isEditing,
-  (next, prev) => {
-    console.debug('[ScreenNode] watch isEditing changed:', prev, '->', next, 'for screen:', props.screen.id)
+  (next) => {
     if (hideTimer) {
       clearTimeout(hideTimer)
       hideTimer = null
     }
 
     if (next) {
-      console.debug('[ScreenNode] setting showEditingOverlay = true for:', props.screen.id)
+      debug.render('editing overlay ON for', props.screen.id)
       showEditingOverlay.value = true
       return
     }
 
     hideTimer = setTimeout(() => {
+      debug.render('editing overlay OFF for', props.screen.id)
       showEditingOverlay.value = false
       hideTimer = null
     }, 900)

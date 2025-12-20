@@ -6,6 +6,7 @@
  */
 
 import { nextTick } from 'vue'
+import { debug } from '~/lib/debug'
 import type { SSEChunk } from './parseSSEStream'
 import type { Message, ToolInvocation } from './types'
 
@@ -60,6 +61,7 @@ export function createToolEventHandler(deps: ToolEventHandlerDeps) {
         break
 
       case 'tool-input-start':
+        debug.tools('input-start', chunk.toolName, chunk.toolCallId)
         getOrCreateInvocation(chunk.toolCallId as string, chunk.toolName as string)
         if (chunk.toolName === 'upsertScreen') {
           setIsDesigning(true)
@@ -71,6 +73,7 @@ export function createToolEventHandler(deps: ToolEventHandlerDeps) {
         const data = chunk.data as { screenId?: string; toolCallId?: string } | undefined
         const screenId = data?.screenId
         const toolCallId = data?.toolCallId
+        debug.tools('editing-start (early)', screenId, toolCallId)
 
         if (typeof screenId === 'string' && typeof toolCallId === 'string') {
           toolCallIdToScreenId.set(toolCallId, screenId)
@@ -93,6 +96,7 @@ export function createToolEventHandler(deps: ToolEventHandlerDeps) {
         const input = chunk.input as Record<string, unknown> | undefined
         invocation.args = input
         invocation.state = 'call'
+        debug.tools('input-available', invocation.toolName, chunk.toolCallId)
 
         if (invocation.toolName === 'upsertScreen' && typeof input?.id === 'string') {
           toolCallIdToScreenId.set(chunk.toolCallId as string, input.id)
@@ -117,6 +121,7 @@ export function createToolEventHandler(deps: ToolEventHandlerDeps) {
         const output = chunk.output as Record<string, unknown> | undefined
         invocation.state = 'result'
         invocation.result = output
+        debug.tools('output-available', invocation.toolName, chunk.toolCallId)
 
         // Trigger frontend side effects based on tool type
         if (invocation.toolName === 'upsertScreen' && output) {
@@ -134,6 +139,7 @@ export function createToolEventHandler(deps: ToolEventHandlerDeps) {
         const invocation = getOrCreateInvocation(chunk.toolCallId as string)
         invocation.state = 'error'
         invocation.errorText = chunk.errorText as string
+        debug.tools('output-error', invocation.toolName, chunk.toolCallId, chunk.errorText)
 
         if (invocation.toolName === 'upsertScreen') {
           toolCallIdToScreenId.delete(chunk.toolCallId as string)
@@ -144,7 +150,7 @@ export function createToolEventHandler(deps: ToolEventHandlerDeps) {
       }
 
       case 'error':
-        console.error('[chat] AI stream error:', chunk.errorText)
+        console.error('AI stream error:', chunk.errorText)
         break
 
       // Ignore other event types (e.g., tool-input-delta, step-start, etc.)

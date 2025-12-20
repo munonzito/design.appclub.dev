@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { debug } from '~/lib/debug'
 
 export interface Screen {
   id: string
@@ -17,7 +18,6 @@ export interface HistoryItem {
 // Module-level singleton refs - ensures all components share the same reactive state
 const _editingScreenId = ref<string | null>(null)
 const _isDesigning = ref(false) // True when upsertScreen tool starts, before we know which screen
-console.debug('[useProjectState] module loaded, refs created')
 
 export const useProjectState = () => {
   const screens = useState<Screen[]>('project-screens', () => [
@@ -73,12 +73,12 @@ export const useProjectState = () => {
   }
 
   const setEditingScreenId = (id: string | null) => {
-    console.debug('[useProjectState] setEditingScreenId:', id)
+    debug.state('editingScreenId =', id)
     _editingScreenId.value = id
   }
 
   const setIsDesigning = (value: boolean) => {
-    console.debug('[useProjectState] setIsDesigning:', value)
+    debug.state('isDesigning =', value)
     _isDesigning.value = value
   }
 
