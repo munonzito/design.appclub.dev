@@ -57,7 +57,7 @@ function getModel(): LanguageModelV2 {
   
   // Default: Azure
   const azure = createAzure({
-    baseURL: 'https://munon-m6zg3vf1-eastus2.cognitiveservices.azure.com/openai/',
+    baseURL: 'your_base_url_here',
     apiKey: process.env.AZURE_API_KEY,
   })
   const model = process.env.AI_MODEL || 'gpt-5.1'
